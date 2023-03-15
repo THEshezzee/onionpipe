@@ -1,0 +1,40 @@
+name: static-windows
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  static-windows:
+    runs-on: windows-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      -
+        name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - name: Configure Git
+        run: |
+          git config --global user.name "Onionpipe CI"
+          git config --global user.email "onionpipe-ci@users.noreply.github.com"
+
+      - name: Build static binary
+        working-directory: ${{ github.workspace }}
+        run: |
+          ./build/build_onionpipe.bash
+
+      - name: Upload windows binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          asset_path: dist/onionpipe-windows-amd64-static
+          asset_name: onionpipe-windows-amd64-static
+          asset_content_type: application/octet-stream
+          upload_url: ${{ github.event.release.upload_url }}
